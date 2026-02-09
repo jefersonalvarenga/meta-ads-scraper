@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node src/main.js",
     "dev": "apify run",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node test-local.js",
+    "test:headless": "HEADLESS=true node test-local.js"
   },
   "author": "",
   "license": "ISC",

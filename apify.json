@@ -1,0 +1,7 @@
+{
+  "name": "facebook-page-scraper",
+  "version": "1.0.0",
+  "buildTag": "latest",
+  "env": {},
+  "template": "playwright-js"
+}
