@@ -1,7 +1,6 @@
 import { Actor } from 'apify';
-import { PlaywrightCrawler } from 'apify';
+import { PlaywrightCrawler, createPlaywrightRouter } from 'crawlee';
 import { extractPageData } from './extractors.js';
-import { Router } from 'apify';
 
 await Actor.init();
 
@@ -32,7 +31,7 @@ Actor.log.info(`Starting Facebook Page Scraper with ${startUrls.length} URLs`);
 
 const proxyConfig = await Actor.createProxyConfiguration(proxyConfiguration);
 
-const router = Router.create();
+const router = createPlaywrightRouter();
 
 router.addDefaultHandler(async ({ page, request, log }) => {
     log.info(`Processing ${request.url}`);
