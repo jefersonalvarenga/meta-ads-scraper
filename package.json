@@ -1,0 +1,21 @@
+{
+  "name": "facebook-page-scraper",
+  "version": "1.0.0",
+  "description": "Apify actor for scraping Facebook pages",
+  "type": "module",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "node src/main.js",
+    "dev": "apify run",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "apify": "^3.1.0",
+    "playwright": "^1.40.0"
+  },
+  "devDependencies": {
+    "apify-cli": "^0.20.0"
+  }
+}

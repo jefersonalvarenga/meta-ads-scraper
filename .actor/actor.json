@@ -1,0 +1,62 @@
+{
+  "actorSpecification": 1,
+  "name": "facebook-page-scraper",
+  "title": "Facebook Page Scraper",
+  "description": "Scrapes Facebook pages and extracts detailed information including likes, followers, ratings, and more.",
+  "version": "1.0.0",
+  "meta": {
+    "templateId": "playwright-js"
+  },
+  "input": ".actor/input_schema.json",
+  "dockerfile": "./Dockerfile",
+  "readme": "./README.md",
+  "storages": {
+    "dataset": {
+      "actorSpecification": 1,
+      "fields": {},
+      "views": {
+        "overview": {
+          "title": "Overview",
+          "transformation": {
+            "fields": [
+              "facebookUrl",
+              "title",
+              "category",
+              "likes",
+              "followers",
+              "phone",
+              "rating"
+            ]
+          },
+          "display": {
+            "component": "table",
+            "properties": {
+              "facebookUrl": {
+                "label": "Facebook URL",
+                "format": "link"
+              },
+              "title": {
+                "label": "Page Title"
+              },
+              "category": {
+                "label": "Category"
+              },
+              "likes": {
+                "label": "Likes"
+              },
+              "followers": {
+                "label": "Followers"
+              },
+              "phone": {
+                "label": "Phone"
+              },
+              "rating": {
+                "label": "Rating"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

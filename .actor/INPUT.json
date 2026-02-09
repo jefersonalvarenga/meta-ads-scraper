@@ -1,0 +1,39 @@
+{
+  "startUrls": [
+    {
+      "url": "https://www.facebook.com/160369210486174"
+    },
+    {
+      "url": "https://www.facebook.com/104851405301629"
+    },
+    {
+      "url": "https://www.facebook.com/249564211574120"
+    },
+    {
+      "url": "https://www.facebook.com/631919876674731"
+    },
+    {
+      "url": "https://www.facebook.com/337202632811202"
+    },
+    {
+      "url": "https://www.facebook.com/2000387153305429"
+    }
+  ],
+  "resultsType": "details",
+  "maxRequestsPerCrawl": 6,
+  "proxyConfiguration": {
+    "useApifyProxy": true,
+    "apifyProxyGroups": [
+      "RESIDENTIAL"
+    ]
+  },
+  "userData": {
+    "search_run_id": "57ff728d-b280-4814-9685-c32df05216b8"
+  },
+  "scrapePosts": false,
+  "scrapeAbout": true,
+  "scrapeReviews": false,
+  "maxConcurrency": 6,
+  "pageLoadTimeoutSecs": 60,
+  "debugLog": false
+}
