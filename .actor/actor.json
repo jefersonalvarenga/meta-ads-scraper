@@ -7,7 +7,7 @@
   "meta": {
     "templateId": "playwright-js"
   },
-  "input": "./INPUT_SCHEMA.json",
+  "input": "./.actor/input_schema.json",
   "dockerfile": "./Dockerfile",
   "readme": "./README.md",
   "storages": {
