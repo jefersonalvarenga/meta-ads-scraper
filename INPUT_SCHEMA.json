@@ -1,0 +1,94 @@
+{
+  "title": "Facebook Page Scraper Input",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "startUrls": {
+      "title": "Start URLs",
+      "type": "array",
+      "description": "List of Facebook page URLs to scrape",
+      "editor": "requestListSources",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "resultsType": {
+      "title": "Results Type",
+      "type": "string",
+      "description": "Type of results to return",
+      "default": "details",
+      "enum": ["details", "basic"],
+      "enumTitles": ["Details", "Basic"]
+    },
+    "maxRequestsPerCrawl": {
+      "title": "Max Requests Per Crawl",
+      "type": "integer",
+      "description": "Maximum number of pages to scrape",
+      "default": 10,
+      "minimum": 1
+    },
+    "proxyConfiguration": {
+      "title": "Proxy Configuration",
+      "type": "object",
+      "description": "Proxy settings",
+      "editor": "proxy",
+      "default": {
+        "useApifyProxy": true,
+        "apifyProxyGroups": ["RESIDENTIAL"]
+      }
+    },
+    "userData": {
+      "title": "User Data",
+      "type": "object",
+      "description": "Custom data to include in results",
+      "editor": "json",
+      "default": {}
+    },
+    "scrapePosts": {
+      "title": "Scrape Posts",
+      "type": "boolean",
+      "description": "Whether to scrape posts from the page",
+      "default": false
+    },
+    "scrapeAbout": {
+      "title": "Scrape About",
+      "type": "boolean",
+      "description": "Whether to scrape the About section",
+      "default": true
+    },
+    "scrapeReviews": {
+      "title": "Scrape Reviews",
+      "type": "boolean",
+      "description": "Whether to scrape reviews",
+      "default": false
+    },
+    "maxConcurrency": {
+      "title": "Max Concurrency",
+      "type": "integer",
+      "description": "Maximum number of concurrent requests",
+      "default": 5,
+      "minimum": 1,
+      "maximum": 20
+    },
+    "pageLoadTimeoutSecs": {
+      "title": "Page Load Timeout (seconds)",
+      "type": "integer",
+      "description": "Timeout for page load in seconds",
+      "default": 60,
+      "minimum": 10,
+      "maximum": 300
+    },
+    "debugLog": {
+      "title": "Debug Log",
+      "type": "boolean",
+      "description": "Enable debug logging",
+      "default": false
+    }
+  },
+  "required": ["startUrls"]
+}
