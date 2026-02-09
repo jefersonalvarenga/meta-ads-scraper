@@ -12,7 +12,9 @@
         "type": "object",
         "properties": {
           "url": {
-            "type": "string"
+            "type": "string",
+            "title": "URL",
+            "description": "Facebook page URL"
           }
         }
       }
