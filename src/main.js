@@ -24,10 +24,10 @@ if (!startUrls || startUrls.length === 0) {
 }
 
 if (debugLog) {
-    Actor.log.setLevel(Actor.log.LEVELS.DEBUG);
+    await Actor.setLogLevel('DEBUG');
 }
 
-Actor.log.info(`Starting Facebook Page Scraper with ${startUrls.length} URLs`);
+console.log(`Starting Facebook Page Scraper with ${startUrls.length} URLs`);
 
 const proxyConfig = await Actor.createProxyConfiguration(proxyConfiguration);
 
