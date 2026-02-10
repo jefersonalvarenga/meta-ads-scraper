@@ -28,35 +28,13 @@ if (debugLog) {
     await Actor.setLogLevel('DEBUG');
 }
 
-// Structured logging
-const log = (level, message, meta = {}) => {
-    console.log(JSON.stringify({
-        level,
-        message,
-        timestamp: new Date().toISOString(),
-        ...meta
-    }));
-};
-
-log('info', 'Starting Facebook Page Scraper', {
-    totalUrls: startUrls.length,
-    maxConcurrency,
-    maxRetries,
-    proxyEnabled: proxyConfiguration?.useApifyProxy || false
-});
+console.log(`Starting Facebook Page Scraper with ${startUrls.length} URLs`);
 
 const proxyConfig = await Actor.createProxyConfiguration(proxyConfiguration);
 
 const router = createPlaywrightRouter();
 
-router.addDefaultHandler(async ({ page, request, log: crawlerLog }) => {
-    const startTime = Date.now();
-
-    log('info', 'Processing page', {
-        url: request.url,
-        retryCount: request.retryCount
-    });
-
+router.addDefaultHandler(async ({ page, request }) => {
     try {
         // Wait for page to load
         await page.waitForLoadState('domcontentloaded', { timeout: pageLoadTimeoutSecs * 1000 });
@@ -93,36 +71,21 @@ router.addDefaultHandler(async ({ page, request, log: crawlerLog }) => {
 
         await Actor.pushData(pageData);
 
-        const duration = Date.now() - startTime;
-        log('success', 'Page scraped successfully', {
-            url: request.url,
-            title: pageData.title,
-            durationMs: duration,
-            dataFields: Object.keys(pageData).length
-        });
-
     } catch (error) {
-        const duration = Date.now() - startTime;
 
-        log('error', 'Error processing page', {
-            url: request.url,
-            error: error.message,
-            errorStack: error.stack,
-            durationMs: duration,
-            retryCount: request.retryCount
-        });
-
-        // Push partial data with error
-        await Actor.pushData({
-            facebookUrl: request.url,
-            pageUrl: request.url,
-            search_run_id: userData.search_run_id || null,
-            error: error.message,
-            timestamp: new Date().toISOString(),
-        });
-
-        // Re-throw to trigger retry if maxRetries not reached
-        throw error;
+        // Push partial data with error (only on final failure)
+        if (request.retryCount >= maxRetries) {
+            await Actor.pushData({
+                facebookUrl: request.url,
+                pageUrl: request.url,
+                search_run_id: userData.search_run_id || null,
+                error: error.message,
+                timestamp: new Date().toISOString(),
+            });
+        } else {
+            // Re-throw to trigger retry
+            throw error;
+        }
     }
 });
 
@@ -131,44 +94,14 @@ const crawler = new PlaywrightCrawler({
     maxConcurrency,
     maxRequestsPerCrawl,
     requestHandler: router,
-
-    // ✅ Session pool for browser reuse
-    useSessionPool: true,
-    persistCookiesPerSession: false, // Public pages don't need cookies
-
-    // ✅ Retry logic
     maxRequestRetries: maxRetries,
-
     launchContext: {
         launchOptions: {
             headless: true,
-            args: [
-                '--disable-blink-features=AutomationControlled',
-                '--disable-dev-shm-usage',
-                '--disable-setuid-sandbox',
-                '--no-sandbox',
-            ],
         },
     },
-    preNavigationHooks: [
-        async ({ page }) => {
-            // Set user agent and other fingerprinting properties
-            await page.setExtraHTTPHeaders({
-                'Accept-Language': 'en-US,en;q=0.9',
-            });
-        },
-    ],
     navigationTimeoutSecs: pageLoadTimeoutSecs,
-    requestHandlerTimeoutSecs: pageLoadTimeoutSecs + 30,
-
-    // ✅ Failure handling
-    failedRequestHandler: async ({ request }, error) => {
-        log('error', 'Request failed after retries', {
-            url: request.url,
-            error: error.message,
-            retryCount: request.retryCount
-        });
-    },
+    requestHandlerTimeoutSecs: pageLoadTimeoutSecs + 20,
 });
 
 // Prepare requests
@@ -189,12 +122,5 @@ const requests = startUrls.map((item) => {
 });
 
 await crawler.run(requests);
-
-// Get final statistics
-const stats = await crawler.stats;
-log('info', 'Scraping completed', {
-    totalRequests: requests.length,
-    crawlerStats: stats
-});
 
 await Actor.exit();
