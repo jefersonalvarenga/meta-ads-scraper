@@ -17,6 +17,7 @@ const {
     maxConcurrency = 5,
     pageLoadTimeoutSecs = 60,
     debugLog = false,
+    maxRetries = 2,
 } = input;
 
 if (!startUrls || startUrls.length === 0) {
@@ -27,14 +28,34 @@ if (debugLog) {
     await Actor.setLogLevel('DEBUG');
 }
 
-console.log(`Starting Facebook Page Scraper with ${startUrls.length} URLs`);
+// Structured logging
+const log = (level, message, meta = {}) => {
+    console.log(JSON.stringify({
+        level,
+        message,
+        timestamp: new Date().toISOString(),
+        ...meta
+    }));
+};
+
+log('info', 'Starting Facebook Page Scraper', {
+    totalUrls: startUrls.length,
+    maxConcurrency,
+    maxRetries,
+    proxyEnabled: proxyConfiguration?.useApifyProxy || false
+});
 
 const proxyConfig = await Actor.createProxyConfiguration(proxyConfiguration);
 
 const router = createPlaywrightRouter();
 
-router.addDefaultHandler(async ({ page, request, log }) => {
-    log.info(`Processing ${request.url}`);
+router.addDefaultHandler(async ({ page, request, log: crawlerLog }) => {
+    const startTime = Date.now();
+
+    log('info', 'Processing page', {
+        url: request.url,
+        retryCount: request.retryCount
+    });
 
     try {
         // Wait for page to load
@@ -71,10 +92,25 @@ router.addDefaultHandler(async ({ page, request, log }) => {
         }
 
         await Actor.pushData(pageData);
-        log.info(`Successfully scraped ${pageData.title || request.url}`);
+
+        const duration = Date.now() - startTime;
+        log('success', 'Page scraped successfully', {
+            url: request.url,
+            title: pageData.title,
+            durationMs: duration,
+            dataFields: Object.keys(pageData).length
+        });
 
     } catch (error) {
-        log.error(`Error processing ${request.url}: ${error.message}`);
+        const duration = Date.now() - startTime;
+
+        log('error', 'Error processing page', {
+            url: request.url,
+            error: error.message,
+            errorStack: error.stack,
+            durationMs: duration,
+            retryCount: request.retryCount
+        });
 
         // Push partial data with error
         await Actor.pushData({
@@ -84,6 +120,9 @@ router.addDefaultHandler(async ({ page, request, log }) => {
             error: error.message,
             timestamp: new Date().toISOString(),
         });
+
+        // Re-throw to trigger retry if maxRetries not reached
+        throw error;
     }
 });
 
@@ -92,6 +131,14 @@ const crawler = new PlaywrightCrawler({
     maxConcurrency,
     maxRequestsPerCrawl,
     requestHandler: router,
+
+    // ✅ Session pool for browser reuse
+    useSessionPool: true,
+    persistCookiesPerSession: false, // Public pages don't need cookies
+
+    // ✅ Retry logic
+    maxRequestRetries: maxRetries,
+
     launchContext: {
         launchOptions: {
             headless: true,
@@ -113,6 +160,15 @@ const crawler = new PlaywrightCrawler({
     ],
     navigationTimeoutSecs: pageLoadTimeoutSecs,
     requestHandlerTimeoutSecs: pageLoadTimeoutSecs + 30,
+
+    // ✅ Failure handling
+    failedRequestHandler: async ({ request }, error) => {
+        log('error', 'Request failed after retries', {
+            url: request.url,
+            error: error.message,
+            retryCount: request.retryCount
+        });
+    },
 });
 
 // Prepare requests
@@ -133,5 +189,12 @@ const requests = startUrls.map((item) => {
 });
 
 await crawler.run(requests);
+
+// Get final statistics
+const stats = await crawler.stats;
+log('info', 'Scraping completed', {
+    totalRequests: requests.length,
+    crawlerStats: stats
+});
 
 await Actor.exit();

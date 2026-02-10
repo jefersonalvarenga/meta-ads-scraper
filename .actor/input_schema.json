@@ -90,6 +90,14 @@
       "type": "boolean",
       "description": "Enable debug logging",
       "default": false
+    },
+    "maxRetries": {
+      "title": "Max Retries",
+      "type": "integer",
+      "description": "Number of retries for failed requests",
+      "default": 2,
+      "minimum": 0,
+      "maximum": 5
     }
   },
   "required": ["startUrls"]
